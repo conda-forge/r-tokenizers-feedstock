@@ -1,5 +1,4 @@
-{% set version = '0.1.4' %}
-
+{% set version = '0.2.1' %}
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
 
@@ -10,53 +9,62 @@ package:
 source:
   fn: tokenizers_{{ version }}.tar.gz
   url:
-    - https://cran.r-project.org/src/contrib/tokenizers_{{ version }}.tar.gz
-    - https://cran.r-project.org/src/contrib/Archive/tokenizers/tokenizers_{{ version }}.tar.gz
-  sha256: 693e19e32605f4c66a51b1eb84258a973ac2fe1d2f919b28e66944721aab9ae1
+    - {{ cran_mirror }}/src/contrib/tokenizers_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/tokenizers/tokenizers_{{ version }}.tar.gz
+  sha256: 28617cdc5ddef5276abfe14a2642999833322b6c34697de1d4e9d6dc7670dd00
 
 build:
   merge_build_host: True  # [win]
-  number: 1
+  number: 0
   skip: true  # [win32]
-
   rpaths:
     - lib/R/lib/
     - lib/
 
 requirements:
   build:
-    - posix                # [win]
-    - {{ compiler('c') }}        # [unix]
-    - {{ compiler('m2w64_c') }}  # [win]
-    - {{ compiler('cxx') }}        # [unix]
-    - {{ compiler('m2w64_cxx') }}  # [win]
+    - {{ compiler('c') }}        # [not win]
+    - {{ compiler('cxx') }}      # [not win]
+    - {{native}}toolchain        # [win]
+    - {{posix}}filesystem        # [win]
+    - {{posix}}make
+    - {{posix}}sed               # [win]
+    - {{posix}}coreutils         # [win]
+    - {{posix}}zip               # [win]
   host:
     - r-base
     - r-rcpp >=0.12.3
     - r-snowballc >=0.5.1
     - r-stringi >=1.0.1
-
   run:
     - r-base
+    - {{native}}gcc-libs         # [win]
     - r-rcpp >=0.12.3
     - r-snowballc >=0.5.1
     - r-stringi >=1.0.1
 
 test:
   commands:
-    - $R -e "library('tokenizers')"  # [not win]
+    - $R -e "library('tokenizers')"           # [not win]
     - "\"%R%\" -e \"library('tokenizers')\""  # [win]
 
 about:
-  home: https://github.com/ropensci/tokenizers
+  home: https://lincolnmullen.com/software/tokenizers/
   license: MIT
-  summary: Convert natural language text into tokens. The tokenizers have a consistent interface
-    and are compatible with Unicode, thanks to being built on the 'stringi' package.
-    Includes tokenizers for shingled n-grams, skip n-grams, words, word stems, sentences,
-    paragraphs, characters, lines, and regular expressions.
+  summary: 'Convert natural language text into tokens. Includes tokenizers for shingled n-grams,
+    skip n-grams, words, word stems, sentences, paragraphs, characters, shingled characters,
+    lines, tweets, Penn Treebank, regular expressions, as well as functions for counting
+    characters, words, and sentences, and a function for splitting longer texts into
+    separate documents, each with the same number of words.  The tokenizers have a consistent
+    interface, and the package is built on the ''stringi'' and ''Rcpp'' packages for  fast
+    yet correct tokenization in ''UTF-8''. '
   license_family: MIT
 
 extra:
   recipe-maintainers:
     - johanneskoester
     - bgruening
+    - daler
+    - jdblischak
+    - cbrueffer
+    - dbast
